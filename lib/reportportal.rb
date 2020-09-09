@@ -137,9 +137,16 @@ module ReportPortal
     end
 
     # needed for parallel formatter
+    def launch_id_to_number()
+        path = "launch/#{@launch_id}"
+        data = send_request(:get, path)
+        data['id']
+    end
+
+    # needed for parallel formatter
     def close_child_items(parent_id)
       path = if parent_id.nil?
-               "item?filter.eq.launch=#{@launch_id}&filter.size.path=0&page.page=1&page.size=100"
+               "item?filter.eq.launchId=#{launch_id_to_number}"
              else
                "item?filter.eq.parent=#{parent_id}&page.page=1&page.size=100"
              end

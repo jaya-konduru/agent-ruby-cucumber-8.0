@@ -11,7 +11,12 @@ module ReportPortal
 
         setup_message_processing
 
-        @io = config.out_stream
+        case config.out_stream
+            when IO
+                @io = config.out_stream
+            when String
+                @io = File.open(config.out_stream, "w")
+        end
 
         @ast_lookup = if (::Cucumber::VERSION.split('.').map(&:to_i) <=> CucumberMessagesVersion) > 0
             require 'cucumber/formatter/ast_lookup'
@@ -70,6 +75,11 @@ module ReportPortal
       end
 
       def finish_message_processing
+        case @io
+            when File
+                @io.close
+        end
+
         return if use_same_thread_for_reporting?
 
         sleep 0.03 while !@queue.empty? || @queue.num_waiting.zero? # TODO: how to interrupt launch if the user aborted execution

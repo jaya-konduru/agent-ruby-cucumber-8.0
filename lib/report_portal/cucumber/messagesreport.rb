@@ -45,11 +45,15 @@ module ReportPortal
       # TODO: time should be a required argument
       def test_case_started(event, desired_time = ReportPortal.now)
         test_case = event.test_case
+        description = test_case.location.to_s
         test_source = @ast_lookup.scenario_source(test_case)
         if test_source.respond_to? :scenario
           test_scenario = test_source.scenario
         elsif test_source.respond_to? :scenario_outline
           test_scenario = test_source.scenario_outline
+          test_example_idx = test_source.examples.table_body.find_index {|r| r == test_source.row}
+          test_example_values = test_source.row.cells.map(&:value).join("\t")
+          description += "\nExample ##{test_example_idx + 1}\n#{test_example_values}"
         else
           raise TypeError, "scenario source unknown type: #{test_source.inspect}"
         end
@@ -60,7 +64,6 @@ module ReportPortal
         end
 
         name = "#{test_scenario.keyword}: #{test_scenario.name}"
-        description = test_case.location.to_s
         tags = test_case.tags.map(&:name)
         type = :STEP
 

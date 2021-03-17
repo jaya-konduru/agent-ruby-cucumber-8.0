@@ -45,15 +45,25 @@ module ReportPortal
       # TODO: time should be a required argument
       def test_case_started(event, desired_time = ReportPortal.now)
         test_case = event.test_case
-        test_source = @ast_lookup.scenario_source(test_case).scenario
+        description = test_case.location.to_s
+        test_source = @ast_lookup.scenario_source(test_case)
+        if test_source.respond_to? :scenario
+          test_scenario = test_source.scenario
+        elsif test_source.respond_to? :scenario_outline
+          test_scenario = test_source.scenario_outline
+          test_example_idx = test_source.examples.table_body.find_index {|r| r == test_source.row}
+          test_example_values = test_source.row.cells.map(&:value).join("\t")
+          description += "\nExample ##{test_example_idx + 1}\n#{test_example_values}"
+        else
+          raise TypeError, "scenario source unknown type: #{test_source.inspect}"
+        end
         gherkin_source = @ast_lookup.gherkin_document(test_case.location.file)
         if report_hierarchy? && !same_feature_as_previous_test_case?(gherkin_source)
           end_feature(desired_time) unless @parent_item_node.is_root?
           start_feature_with_parentage(gherkin_source, desired_time)
         end
 
-        name = "#{test_source.keyword}: #{test_source.name}"
-        description = test_case.location.to_s
+        name = "#{test_scenario.keyword}: #{test_scenario.name}"
         tags = test_case.tags.map(&:name)
         type = :STEP
 

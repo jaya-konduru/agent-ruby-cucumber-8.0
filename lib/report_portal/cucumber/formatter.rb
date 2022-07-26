@@ -1,4 +1,6 @@
-require_relative 'report'
+require_relative '../../reportportal'
+
+CucumberMessagesVersion=[8,0,0]
 
 module ReportPortal
   module Cucumber
@@ -10,6 +12,13 @@ module ReportPortal
         setup_message_processing
 
         @io = config.out_stream
+
+        @ast_lookup = if (::Cucumber::VERSION.split('.').map(&:to_i) <=> CucumberMessagesVersion) > 0
+                        require 'cucumber/formatter/ast_lookup'
+                        ::Cucumber::Formatter::AstLookup.new(config)
+                      else
+                        nil
+                      end
 
         %i[test_case_started test_case_finished test_step_started test_step_finished test_run_finished].each do |event_name|
           config.on_event event_name do |event|
@@ -32,7 +41,13 @@ module ReportPortal
       private
 
       def report
-        @report ||= ReportPortal::Cucumber::Report.new
+        if @ast_lookup.nil?
+          require_relative 'report'
+          @report ||= ReportPortal::Cucumber::Report.new
+        else
+          require_relative 'messagesreport'
+          @report ||= ReportPortal::Cucumber::MessagesReport.new(@ast_lookup)
+        end
       end
 
       def setup_message_processing

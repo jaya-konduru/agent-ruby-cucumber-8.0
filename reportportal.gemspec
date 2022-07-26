@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors                = ['Aliaksandr Trush', 'Sergey Gvozdyukevich', 'Andrei Botalov']
   s.email                  = 'dzmitry_humianiuk@epam.com'
   s.homepage               = 'https://github.com/reportportal/agent-ruby'
-  s.files                  = ['README.md', 'LICENSE', 'LICENSE.LESSER'] + Dir['lib/**/*']
+  s.files                  = ['README.md', 'LICENSE.txt'] + Dir['lib/**/*']
   s.required_ruby_version  = '>= 2.3.0'
   s.license                = 'Apache-2.0'
 
